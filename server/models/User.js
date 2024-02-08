@@ -19,6 +19,7 @@ const passwordValidator = (value) => {
 const UserSchema = new Schema({
   username: {
     type: String,
+    unique: true,
     minlength: 6,
     required: true,
   },
@@ -33,7 +34,17 @@ const UserSchema = new Schema({
     default: false,
     required: true,
   },
-
+  profile_icon: {
+    type: [{
+      type: String,
+      validate: {
+        validator(value) {
+          return value === null || value === undefined || (typeof value === 'string' && value.length > 0);
+        },
+        message: 'Profile icon must be a non-empty string or null/undefined.',
+      },
+    }],
+  },
 });
 
 module.exports = mongoose.model('User', UserSchema);

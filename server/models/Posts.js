@@ -10,21 +10,21 @@ const PostSchema = new Schema({
     maxlength: 174,
   },
   date: { type: Date, required: true },
-  images: {
+  media: {
     type: [{
       type: String,
       validate: {
         validator(value) {
           return /^\/uploads\/.+\.jpg$/.test(value);
         },
-        message: (props) => `${props.value} no es una ruta de imagen válida`,
+        message: (props) => `${props.value} no es una ruta del contenido válida`,
       },
     }],
     validate: {
       validator(value) {
         return value.length <= 5;
       },
-      message: 'No se permiten más de 5 imágenes',
+      message: 'No se permiten más de 5 uploads',
     },
   },
 
