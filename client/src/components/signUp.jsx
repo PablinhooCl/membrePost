@@ -45,7 +45,7 @@ const SignUpForm = () => {
   };
 
   return (
-    <div className=' flex justify-center items-center m-auto z-10 border-2 rounded-md px-14 border-indigo-500/100 '  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+    <div className=' flex justify-center items-center m-auto z-10 border-2 rounded-none px-14 border-indigo-500/100 '  style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
       <form onSubmit={handleSubmit} className='flex flex-col'>
         <input  className='my-5 border-1 block h-12 w-full rounded-md border border-double border-slate-800 border-transparent bg-[linear-gradient(#000,#000),linear-gradient(to_right,#334454,#334454)]	bg-origin-border px-3 py-2 text-slate-200 transition-all duration-500 [background-clip:padding-box,_border-box] placeholder:text-slate-500 focus:bg-[linear-gradient(#000,#000),linear-gradient(to_right,#c7d2fe,#8678f9)] focus:outline-none'
           type="text"

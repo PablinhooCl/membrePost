@@ -11,6 +11,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const flash = require('connect-flash');
+const morgan = require('morgan');
+require('./configuration/passport');
 
 dotenv.config();
 
@@ -45,17 +48,22 @@ const app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
-app.use(session({ secret: 'cats', resave: false, saveUninitialized: true }));
-app.use(passport.initialize());
-app.use(passport.session());
+app.use(session({
+  secret: 'susuzu',
+  resave: true,
+  saveUninitialized: true,
+
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(cors());
+app.use(flash());
+app.use(morgan('dev'));
+app.use(passport.initialize());
+app.use(passport.session());
 
 const indexRouter = require('./routes/index');
-
-const User = require('./models/User');
 
 app.use('/', indexRouter);
 

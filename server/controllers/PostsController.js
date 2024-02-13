@@ -2,6 +2,8 @@ const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
 const express = require('express');
+const passport = require('passport');
+const passportUser = require('../configuration/passport');
 
 const router = express.Router();
 
@@ -19,6 +21,7 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
 
 exports.post_list = asyncHandler(async (req, res, next) => {
   const allPosts = await Post.find({}, 'post username')
@@ -53,32 +56,23 @@ exports.post_create_get = asyncHandler(async (req, res, next) => {
 });
 
 exports.post_create_post = [
-  upload.array('images', 5),
-
+  upload.single('media'),
   body('post')
     .trim()
     .isLength({ max: 174 }),
 
   asyncHandler(async (req, res) => {
     const errors = validationResult(req);
-
-    const post = new Post({
-      post: req.body.message,
-      date: Date.now(),
-      media: req.files.map((file) => `/uploads/${file.filename}`),
-    });
-
+    console.log(req.session.passport);
     if (!errors.isEmpty()) {
-      res.render('post_form', {
-        title: 'Post on the board',
-        new_post: post,
-        successMessage: 'Post created successfully',
-        errorMessage: null,
-      });
-    } else {
-      await post.save();
-      res.redirect('/');
+      return res.status(400).json({ errors: errors.array() });
     }
+
+    const { post_msg } = req.body;
+    const media = req.file;
+
+    const { user } = req;
+    console.log('asd', user);
   }),
 ];
 
@@ -97,5 +91,3 @@ exports.post_update_get = asyncHandler(async (req, res, next) => {
 exports.post_update_post = asyncHandler(async (req, res, next) => {
   res.send('NOT IMPLEMENTED: post update POST');
 });
-
-module.exports = router;

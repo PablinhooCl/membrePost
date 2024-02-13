@@ -514,10 +514,6 @@ video {
 .inline-flex {
   display: inline-flex;
 }
-.size-24 {
-  width: 6rem;
-  height: 6rem;
-}
 .h-12 {
   height: 3rem;
 }
@@ -547,6 +543,9 @@ video {
 }
 .rounded-md {
   border-radius: 0.375rem;
+}
+.rounded-none {
+  border-radius: 0px;
 }
 .border {
   border-width: 1px;

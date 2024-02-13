@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const PostSchema = new Schema({
-  username: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+  user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   post: {
     type: String,
     required: true,
@@ -15,7 +15,7 @@ const PostSchema = new Schema({
       type: String,
       validate: {
         validator(value) {
-          return /^\/uploads\/.+\.jpg$/.test(value);
+          return /^\/uploads\/.+/.test(value);
         },
         message: (props) => `${props.value} no es una ruta del contenido válida`,
       },

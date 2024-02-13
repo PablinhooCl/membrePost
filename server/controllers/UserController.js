@@ -7,51 +7,24 @@ const LocalStrategy = require('passport-local').Strategy;
 const session = require('express-session');
 const multer = require('multer');
 const passport = require('passport');
+const asyncHandler = require('express-async-handler');
+
+const passportRouter = require('../configuration/passport');
 
 const app = express();
 
 const router = express.Router();
 
-dotenv.config();
+router.use(passport.initialize());
+router.use(passport.session());
 
-const asyncHandler = require('express-async-handler');
+dotenv.config();
 
 const User = require('../models/User');
 const Post = require('../models/Posts');
+require('../configuration/passport');
 
 const { memberCoder } = process.env;
-
-passport.use(
-
-  new LocalStrategy(async (username, password, done) => {
-    try {
-      const user = await User.findOne({ username });
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username' });
-      }
-      const match = await bcrypt.compare(password, user.password);
-      if (!match) {
-        return done(null, false, { message: 'Incorrect password' });
-      }
-      return done(null, user);
-    } catch (err) {
-      return done(err);
-    }
-  }),
-);
-
-passport.serializeUser((user, done) => {
-  done(null, user.id);
-});
-
-passport.deserializeUser(async (id, done) => {
-  try {
-    const user = await User.findById(id);
-    done(null, user);
-  } catch (err) {
-    done(err);
-  }
-});
 
 exports.index = asyncHandler(async (req, res) => {
   const [
@@ -110,9 +83,23 @@ exports.user_login_get = asyncHandler(async (req, res, next) => {
   res.render('index', { user: req.user });
 });
 
-exports.user_login_post = passport.authenticate('local', {
-  successRedirect: '/',
-  failureRedirect: '/login',
+exports.user_login_post = asyncHandler(async (req, res, next) => {
+  console.log('asdzxc', req.body);
+  passport.authenticate('local', (err, user, info) => {
+    console.log(`Test:${user}`);
+    if (err) {
+      return next(err);
+    }
+    if (!user) {
+      return res.status(401).json({ error: 'Auth Error!' });
+    }
+    req.logIn(user, (err) => {
+      if (err) {
+        return next(err);
+      }
+      return res.status(200).send({ message: 'Inicio de sesión exitoso', user });
+    });
+  })(req, res, next);
 });
 
 exports.user_delete_get = asyncHandler(async (req, res, next) => {
