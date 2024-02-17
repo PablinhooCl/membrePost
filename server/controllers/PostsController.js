@@ -1,11 +1,7 @@
 const asyncHandler = require('express-async-handler');
 const { body, validationResult } = require('express-validator');
 const multer = require('multer');
-const express = require('express');
-const passport = require('passport');
-const passportUser = require('../configuration/passport');
-
-const router = express.Router();
+const {passport, generateToken, authenticateToken } = require('../configuration/passport');
 
 const Post = require('../models/Posts');
 const User = require('../models/User');
@@ -20,8 +16,12 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
-
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 520 * 1024 * 1024,
+  },
+});
 
 exports.post_list = asyncHandler(async (req, res, next) => {
   const allPosts = await Post.find({}, 'post username')
@@ -56,23 +56,25 @@ exports.post_create_get = asyncHandler(async (req, res, next) => {
 });
 
 exports.post_create_post = [
-  upload.single('media'),
-  body('post')
-    .trim()
-    .isLength({ max: 174 }),
-
+  authenticateToken,
   asyncHandler(async (req, res) => {
+    console.log('body', req.body);
+    const user = req.user.prop;
     const errors = validationResult(req);
-    console.log(req.session.passport);
     if (!errors.isEmpty()) {
       return res.status(400).json({ errors: errors.array() });
     }
+    const { postText, imageFile } = req.body;
+    console.log(imageFile, postText);
+      const post = new Post({
+        user: user._id,
+        post_msg: postText, 
+        date: new Date(),
+      });
 
-    const { post_msg } = req.body;
-    const media = req.file;
-
-    const { user } = req;
-    console.log('asd', user);
+      await post.save();
+      return res.status(201).json(post);
+    
   }),
 ];
 

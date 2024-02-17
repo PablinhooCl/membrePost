@@ -1,31 +1,34 @@
 import React,{ useState } from 'react'
 import addImage from '../assets/addImage.webp'
 import axios from 'axios'
+import { useLocation } from 'react-router-dom'
+
 
 const AddPost = () => {
-    const [postText, setPostText] = useState('');
-    const [imagePreview, setImagePreview] = useState(null);
-    const [imageFile, setImageFile] = useState(null);
+  const location = useLocation()
+  const [formData, setFormData] = useState({
+    postText: '',
+    imageFile: null,
+  });
+  const [imagePreview, setImagePreview] = useState(null);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         try {
-          const response = await axios.post('http://localhost:5000/new-post',
-          { withCredentials: true }, {
-            post_msg: postText,
-            media: imageFile
-          }, {
+          console.log('asd', formData);
+          const userInfo = location.state.userToken;
+          const response = await axios.post('http://localhost:5000/new-post', {postText: formData.postText, imageFile: formData.imageFile},
+          {
             headers: {
+              Authorization: `Bearer ${userInfo}`,
               'Content-Type': 'application/json',
               'Accept': 'application/json',
               'Access-Control-Allow-Origin': '*',
             },
           });
-          console.log("Post Text:", postText);
-          console.log("Image File:", imageFile);
           if (response.status === 200) {
             console.log('Post enviado con exito')
-            console.log(response.data.user);
           }
         } catch (error) {
           console.error('Ocurrió un error al realizar la solicitud:', error);
@@ -34,16 +37,22 @@ const AddPost = () => {
 
     const handleImageChange = (e) => {
         const file = e.target.files[0];
-        setImageFile(file);
+        setFormData({
+          ...formData,
+          imageFile: file
+          });
         const reader = new FileReader();
         reader.onloadend = () => {
-          setImagePreview(reader.result);
+          setImagePreview(reader.result)
         };
         reader.readAsDataURL(file);
       };
 
       const handleTextChange = (e) => {
-        setPostText(e.target.value);
+        setFormData({
+          ...formData,
+          postText: e.target.value
+          });
       };
 
     return (
@@ -56,7 +65,7 @@ const AddPost = () => {
                 )}
             <form onSubmit={handleSubmit} className="w-96">
                 <textarea
-                value={postText}
+                value={formData.postText}
                 onChange={handleTextChange}
                 className="w-full h-40 border border-gray-300 rounded p-2 mb-4"
                 maxLength={174}

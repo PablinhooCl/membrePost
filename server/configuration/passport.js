@@ -1,12 +1,17 @@
+/* eslint-disable import/no-extraneous-dependencies */
 const passport = require('passport');
-const express = require('express');
 const LocalStrategy = require('passport-local').Strategy;
 const bcrypt = require('bcryptjs');
-
-const router = express.Router();
+const JwtStrategy = require('passport-jwt').Strategy;
+const { ExtractJwt } = require('passport-jwt');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
 
 const User = require('../models/User');
-const Post = require('../models/Posts');
+
+dotenv.config();
+
+const { jwtTokenSecret } = process.env;
 
 passport.use(
   new LocalStrategy(async (username, password, done) => {
@@ -29,25 +34,43 @@ passport.use(
   }),
 );
 
-// passport.serializeUser((user, cb) => {
-//   process.nextTick(() => {
-//     console.log('Serializing user:');
-//     console.log('User ID:', user.id);
-//     console.log('Username:', user.username);
-//     console.log('Is Member:', user.member);
-//     cb(null, {
-//       id: user._id,
-//       username: user.username,
-//       member: user.member,
-//     });
-//   });
-// });
+passport.serializeUser((user, done) => {
+  done(null, user.id);
+});
 
-// passport.deserializeUser((user_id, cb) => {
-//   User.findById(user_id, (err, user) => cb(null, user));
-// });
-passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser((id, done) => {
+  User.findById(id, (err, user) => {
+    done(err, user);
+  });
+});
 
-passport.deserializeUser((id, done) => done(null, User.getUserById(id)));
+passport.use(new JwtStrategy({
+  jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+  secretOrKey: jwtTokenSecret,
+}, (jwtPayload, done) => done(null, jwtPayload)));
 
-module.exports = router;
+function generateToken(prop) {
+  return jwt.sign({ prop }, jwtTokenSecret, { expiresIn: '1h' });
+}
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) {
+    return res.status(401).json({ message: 'Token no proporcionado' });
+  }
+
+  jwt.verify(token, jwtTokenSecret, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Token no valido' });
+    }
+    req.user = user;
+    next();
+  });
+}
+
+module.exports = {
+  passport,
+  generateToken,
+  authenticateToken,
+};

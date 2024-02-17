@@ -8,12 +8,18 @@ const Welcome = () => {
     const location = useLocation()
 
     const [toggle, setToggle] = useState('login');
+    const [isFromHome, setIsFromHome] = useState(false)
 
     function toggleTab(tab) {
         setToggle(tab);
     }
 
-    const isFromHome = location.state && location.state.fromHome === true;
+    useEffect(() => {
+        if (location.state && location.state.fromHome) {
+          setIsFromHome(true);
+        }
+      }, [location.state]);
+
 
     return(
         <div className='m-auto'>

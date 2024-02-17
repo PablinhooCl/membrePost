@@ -1,18 +1,14 @@
 /* eslint-disable import/no-extraneous-dependencies */
-const createError = require('http-errors');
 const express = require('express');
 const path = require('path');
-const cookieParser = require('cookie-parser');
-const logger = require('morgan');
 const session = require('express-session');
 const passport = require('passport');
-const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const flash = require('connect-flash');
 const morgan = require('morgan');
+const bodyParser = require('body-parser');
 require('./configuration/passport');
 
 dotenv.config();
@@ -49,19 +45,23 @@ app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
 app.use(session({
-  secret: 'susuzu',
-  resave: true,
-  saveUninitialized: true,
-
+  secret: 'mysecret',
+  cookie: { maxAge: 3600000 },
+  saveUninitialized: false,
+  resave: false,
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
-app.use(cors());
+app.use(cors({
+  origin: 'http://localhost:5174',
+  credentials: true,
+}));
 app.use(flash());
 app.use(morgan('dev'));
 app.use(passport.initialize());
 app.use(passport.session());
+app.use(bodyParser.json({ limit: '50mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 
 const indexRouter = require('./routes/index');
 
@@ -69,4 +69,4 @@ app.use('/', indexRouter);
 
 app.listen(5000, () => console.log('app listening on port 5000!'));
 
-module.exports = app;
+module.exports = { app };

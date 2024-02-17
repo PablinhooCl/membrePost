@@ -1,27 +1,15 @@
 /* eslint-disable import/no-extraneous-dependencies */
-const express = require('express');
 const bcrypt = require('bcryptjs');
 const dotenv = require('dotenv');
-const { body, validationResult } = require('express-validator');
-const LocalStrategy = require('passport-local').Strategy;
-const session = require('express-session');
-const multer = require('multer');
-const passport = require('passport');
 const asyncHandler = require('express-async-handler');
 
-const passportRouter = require('../configuration/passport');
-
-const app = express();
-
-const router = express.Router();
-
-router.use(passport.initialize());
-router.use(passport.session());
+const { passport, generateToken } = require('../configuration/passport');
 
 dotenv.config();
 
 const User = require('../models/User');
 const Post = require('../models/Posts');
+
 require('../configuration/passport');
 
 const { memberCoder } = process.env;
@@ -84,21 +72,20 @@ exports.user_login_get = asyncHandler(async (req, res, next) => {
 });
 
 exports.user_login_post = asyncHandler(async (req, res, next) => {
-  console.log('asdzxc', req.body);
-  passport.authenticate('local', (err, user, info) => {
-    console.log(`Test:${user}`);
+  passport.authenticate('local', async (err, user) => {
     if (err) {
       return next(err);
     }
     if (!user) {
       return res.status(401).json({ error: 'Auth Error!' });
     }
-    req.logIn(user, (err) => {
-      if (err) {
-        return next(err);
-      }
-      return res.status(200).send({ message: 'Inicio de sesión exitoso', user });
-    });
+    try {
+      const userToken = generateToken(user);
+      const sendUser = user.username;
+      return res.status(200).send({ message: 'Inicio de sesión exitoso', userToken, sendUser });
+    } catch (error) {
+      return next(error);
+    }
   })(req, res, next);
 });
 

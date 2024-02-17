@@ -4,7 +4,7 @@ const { Schema } = mongoose;
 
 const PostSchema = new Schema({
   user: { type: Schema.Types.ObjectId, ref: 'User', required: true },
-  post: {
+  post_msg: {
     type: String,
     required: true,
     maxlength: 174,
